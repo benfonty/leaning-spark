@@ -21,7 +21,13 @@ public class LearningSparkApplication {
 
 		try (JavaSparkContext sc = new JavaSparkContext(conf)){
 			JavaRDD<Double> myRdd = sc.parallelize(inputData);
-			System.out.println(myRdd.reduce((d1, d2) -> d1 + d2));
+			Double result = myRdd
+					.map(d -> d * 2)
+					.reduce((d1, d2) -> d1 + d2);
+
+			myRdd.collect() // collect all data on the computer because println is not serializable thus spark cannot send it to other nodes
+					.forEach(System.out::println);
+			System.out.println(result);
 		}
 	}
 }
