@@ -1,20 +1,65 @@
 package com.example.learningSpark;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.StreamSupport;
 
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
 import org.apache.spark.SparkConf;
+import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
+
 
 import scala.Tuple2;
 
 public class LearningSparkApplication {
 
 	public static void main(String[] args) {
+
+		Logger.getLogger("org").setLevel(Level.WARN);
+		Logger.getLogger("akka").setLevel(Level.WARN);
+
 		SparkConf conf = new SparkConf().setAppName("startSpark").setMaster("local[*]");
 
-		example1(conf);
+		example2(conf);
+	}
+
+	private static void example2(SparkConf conf) {
+		List<String> inputData = new ArrayList<>();
+		inputData.add("WARN: Tuesday 4 September 0405");
+		inputData.add("ERROR: Tuesday 4 September 0408");
+		inputData.add("FATAL: Wednesday 5 September 1632");
+		inputData.add("ERROR: Friday 7 September 1854");
+		inputData.add("WARN: Saturday 7 September 1942");
+
+		try (JavaSparkContext sc = new JavaSparkContext(conf)){
+			JavaRDD<String> originalLogs = sc.parallelize(inputData);
+			JavaPairRDD<String, String> pairs = originalLogs.mapToPair(value -> {
+				String[] s = value.split(":");
+				return new Tuple2(s[0], s[1]);
+			});
+
+			pairs
+					.groupByKey()
+					.mapValues(l -> StreamSupport.stream(l.spliterator(), false).count())
+					.collect()
+					.forEach(System.out::println);
+			pairs
+					.mapValues(v -> 1L)
+					.reduceByKey((v1, v2) -> v1 + v2)
+					.collect()
+					.forEach(System.out::println);
+
+			originalLogs
+					.flatMap(v -> Arrays.asList(v.split(" ")).iterator())
+					.filter(v -> v.length() > 1)
+					.filter(v -> !v.contains(":"))
+					.collect()
+					.forEach(System.out::println);
+		}
 	}
 
 	private static void example1(SparkConf conf) {
