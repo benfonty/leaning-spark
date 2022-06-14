@@ -7,6 +7,8 @@ import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 
+import scala.Tuple2;
+
 public class LearningSparkApplication {
 
 	public static void main(String[] args) {
@@ -21,9 +23,9 @@ public class LearningSparkApplication {
 
 		try (JavaSparkContext sc = new JavaSparkContext(conf)){
 			JavaRDD<Double> myRdd = sc.parallelize(inputData);
-			Double result = myRdd
-					.map(d -> d * 2)
-					.reduce((d1, d2) -> d1 + d2);
+			Tuple2<Double, Double> result = myRdd
+					.map(d -> new Tuple2<>(d, d * 2))
+					.reduce((d1, d2) -> new Tuple2<>(d1._1 + d2._1, d1._2 + d2._2));
 
 			myRdd.collect() // collect all data on the computer because println is not serializable thus spark cannot send it to other nodes
 					.forEach(System.out::println);
