@@ -24,7 +24,13 @@ public class LearningSparkApplication {
 
 		SparkConf conf = new SparkConf().setAppName("startSpark").setMaster("local[*]");
 
-		example2(conf);
+		example3(conf);
+	}
+
+	private static void example3(SparkConf conf) {
+		try (JavaSparkContext sc = new JavaSparkContext(conf)) {
+			sc.textFile()
+		}
 	}
 
 	private static void example2(SparkConf conf) {
