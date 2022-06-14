@@ -12,14 +12,17 @@ import scala.Tuple2;
 public class LearningSparkApplication {
 
 	public static void main(String[] args) {
+		SparkConf conf = new SparkConf().setAppName("startSpark").setMaster("local[*]");
+
+		example1(conf);
+	}
+
+	private static void example1(SparkConf conf) {
 		List<Double> inputData = new ArrayList<>();
 		inputData.add(35.5);
 		inputData.add(12.49943);
 		inputData.add(90.32);
 		inputData.add(20.32);
-
-
-		SparkConf conf = new SparkConf().setAppName("startSpark").setMaster("local[*]");
 
 		try (JavaSparkContext sc = new JavaSparkContext(conf)){
 			JavaRDD<Double> myRdd = sc.parallelize(inputData);
