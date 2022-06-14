@@ -1,5 +1,6 @@
 package com.example.learningSpark;
 
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -11,6 +12,8 @@ import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
+
+import com.virtualpairprogrammers.Util;
 
 
 import scala.Tuple2;
@@ -29,7 +32,21 @@ public class LearningSparkApplication {
 
 	private static void example3(SparkConf conf) {
 		try (JavaSparkContext sc = new JavaSparkContext(conf)) {
-			sc.textFile()
+			sc.textFile("src/main/resources/subtitles/input.txt")
+					.flatMap(v -> Arrays.asList(v.split(" ")).iterator())
+					.filter(s -> !s.isEmpty())
+					.map(String::toLowerCase)
+					.map(s -> s.replaceAll("[^a-z]", ""))
+					.filter(Util::isNotBoring)
+					.mapToPair(v -> new Tuple2<>(v, 1L))
+					.reduceByKey((v1, v2) -> v1 + v2)
+					.mapToPair(v -> v.swap())
+					.sortByKey(false)
+					.take(11)
+					.stream()
+					.map(v -> MessageFormat.format("{0} is seen {1} times", v._2, v._1))
+					.forEach(System.out::println);
+
 		}
 	}
 
